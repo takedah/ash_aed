@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-md-8">
+            <section>
+                <h1 class="h4 mb-3">旭川市AED設置場所検索</h1>
+                <p>旭川市ホームページのAED設置事業所一覧オープンデータから、旭川市のAED設置場所を検索できます。位置情報を使えば現在地から近いAED設置場所を探すこともできます。</p>
+            </section>
+            <section>
+                <p id="gpsServiceStatus" class="none"></p>
+            </section>
+            <section id="nudge">
+                <p><button id="useGps" class="btn btn-primary">現在地の位置情報を取得</button></p>
+            </section>
+            <section id="searchByGps">
+                <form action="./search_by_gps" method="POST">
+                    <p>
+                        <input type="hidden" id="currentLatitude" name="current_latitude" value="">
+                        <input type="hidden" id="currentLongitude" name="current_longitude" value="">
+                        <button type="submit" id="sendCurrentLocation" class="btn btn-success">現在地から近いAED設置場所を検索</button>
+                    </p>
+                </form>
+            </section>
+            <section>
+                <p>または、</p>
+                <form class="form mb-4" action="/search_by_location_name" method="GET">
+                    <div class="form-group">
+                        <label class="h5 text-secondary" for="location_name">AED設置場所名を入力</label>
+                        <input class="form-control" type="text" name="location_name" value="" placeholder="例）花咲スポーツ公園">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">AED設置場所名で検索</button>
+                    </div>
+                </form>
+            </section>
+            <section>
+                <p class="alert alert-warning">{{ last_updated }} に取得した情報を元にしています。最新の情報は、旭川市ホームページの<a href="https://www.city.asahikawa.hokkaido.jp/facility00/facility03/index.html" title="AED設置場所一覧 | 旭川市ホームページ">AED設置場所一覧</a>で確認してください。</p>
+            </section>
+            <section>
+                <h2 class="h5 mt-5">AEDとは</h2>
+                <blockquote class="mt-3">
+                    <p>突然に心臓が止まるのは、心臓がブルブルと細かくふるえる「心室細動」によって生じることが多く、この場合にはできるだけ早く心臓に電気ショックを与え、心臓の動きを取り戻す（これを除細動といいます）事がとても重要です。</p>
+                    <p>AED（自動体外式除細動器）は、この電気ショックを行うための機器です。コンピュータによって自動的に心室細動かどうか調べて電気ショックを指示してくれますので、一般の人でも簡単で確実に操作することができます。</p>
+                    <p class="mb-0">心室細動になってから電気ショックを行うまでの時間が1分遅れるごとに、救命率が7～10％ずつ低下することが知られています。このため最近では、空港、駅、デパート、ホテル、公共施設、学校等いろいろな場所にAEDを備え付け、その場に居合わせた人によってAEDを活用してもらうことで、今までは医師や救急車を待っていただけでは助からなかったかもしれない人々の救命につなげることを目指しています。</p>
+                    <footer class="blockquote-footer">
+                        <cite><a href="https://www.city.asahikawa.hokkaido.jp/kurashi/311/316/d053328.html" title="旭川市ホームページ">ＡＥＤ設置公表事業所、ＡＥＤの貸出（旭川市ホームページ）</a></cite>
+                    </footer>
+
+                </blockquote>
+            </section>
+        </div>
+        <div class="col-md-4">
+            <section>
+                <div class="list-group">
+                    <h2 class="list-group-item h5">AED設置場所の住所から探す</h5>
+                    <ul class="pl-0">
+                        {% for area_name in area_names %}
+                        <li class="list-group-item list-group-item-action"><a href="/area/{{ area_name }}" title="{{ area_name }}のAED設置場所一覧へ">{{ area_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+<script charset="utf-8" src="{{ url_for('static', filename='js/get_location.js') }}"></script>
+{% endblock %}
