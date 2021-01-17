@@ -10,23 +10,26 @@
                         <tr>
                             <th>事業所名</th>
                             <th>住所</th>
-                            <th>電話番号</th>
-                            <th>利用可能時間</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="results" data-length="{{ results_length|tojson }}">
                         {% for result in search_results %}
-                        <tr>
+                        <tr id="order{{ loop.index }}" data-latitude="{{ result.latitude|tojson }}" data-longitude="{{ result.longitude|tojson }}" data-name="{{ result.location_name|safe }}">
                             <td><a href="/location/{{ result.location_id }}" title="{{ result.location_name }}の詳細へ">{{ result.location_name }}</a></td>
                             <td>{{ result.address }}</td>
-                            <td>{{ result.phone_number }}</td>
-                            <td>{{ result.available_time }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </section>
+            <section>
+                <div id="mapid" class="mb-3"></div>
+            </section>
+            <section>
+                <p class="mt-3 text-center"><a href="/" title="トップページへ戻る">トップページへ戻る</a></p>
+            </section>
         </div>
     </div>
 </div>
+<script charset="utf-8" src="{{ url_for('static', filename='js/show_map.js') }}"></script>
 {% endblock %}

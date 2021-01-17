@@ -107,6 +107,7 @@ def search_by_gps():
 
         service = AEDInstallationLocationService(get_db())
         near_locations = service.get_near_locations(current_location)
+        results_length = len(near_locations)
         return render_template(
             "search_by_gps.html",
             title=title,
@@ -114,6 +115,7 @@ def search_by_gps():
             search_results=near_locations,
             current_latitude=current_latitude,
             current_longitude=current_longitude,
+            results_length=results_length,
         )
 
 
@@ -158,7 +160,8 @@ def area(area_name):
     area_name = escape(area_name)
     service = AEDInstallationLocationService(get_db())
     search_results = service.find_by_area_name(area_name)
-    if len(search_results) == 0:
+    results_length = len(search_results)
+    if results_length == 0:
         title = "検索条件に誤りがあります"
         error_message = "地域の名称が正しくありません。"
         return render_template(
@@ -175,6 +178,7 @@ def area(area_name):
         area_names=get_area_names(),
         area_name=area_name,
         search_results=search_results,
+        results_length=results_length,
     )
 
 
