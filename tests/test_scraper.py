@@ -1,10 +1,10 @@
 import unittest
+from unittest.mock import Mock, patch
+
+from requests import ConnectionError, HTTPError, Timeout
+
 from ash_aed.errors import ScrapeError
 from ash_aed.scraper import OpenData
-from requests import ConnectionError
-from requests import HTTPError
-from requests import Timeout
-from unittest.mock import Mock, patch
 
 
 class TestOpenData(unittest.TestCase):

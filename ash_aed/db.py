@@ -1,8 +1,8 @@
 import psycopg2
 from psycopg2.extras import DictCursor
+
 from ash_aed.config import Config
-from ash_aed.errors import DatabaseError
-from ash_aed.errors import DataError
+from ash_aed.errors import DatabaseError, DataError
 
 
 class DB:

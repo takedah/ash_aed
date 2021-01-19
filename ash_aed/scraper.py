@@ -1,11 +1,13 @@
 import io
+
 import numpy as np
 import pandas as pd
 import requests
+from requests import RequestException
+
 from ash_aed.config import Config
 from ash_aed.errors import ScrapeError
 from ash_aed.logs import AppLog
-from requests import RequestException
 
 
 class OpenData:

@@ -1,15 +1,11 @@
-from flask import escape
-from flask import Flask
-from flask import g
-from flask import render_template
-from flask import request
-from flask import url_for
-from ash_aed.db import DB
-from ash_aed.models import CurrentLocation
-from ash_aed.errors import LocationError
-from ash_aed.services import AEDInstallationLocationService
 import os
 
+from flask import Flask, escape, g, render_template, request, url_for
+
+from ash_aed.db import DB
+from ash_aed.errors import LocationError
+from ash_aed.models import CurrentLocation
+from ash_aed.services import AEDInstallationLocationService
 
 app = Flask(__name__)
 

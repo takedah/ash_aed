@@ -1,10 +1,9 @@
 import unittest
-from ash_aed.errors import LocationError
-from ash_aed.models import AEDInstallationLocation
-from ash_aed.models import AEDInstallationLocationFactory
-from ash_aed.models import CurrentLocation
-from ash_aed.models import Point
 
+from ash_aed.errors import LocationError
+from ash_aed.models import (AEDInstallationLocation,
+                            AEDInstallationLocationFactory, CurrentLocation,
+                            Point)
 
 test_data = {
     "area": "一条通〜十条通",

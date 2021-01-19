@@ -1,10 +1,9 @@
 import unittest
-from ash_aed.db import DB
-from ash_aed.models import CurrentLocation
-from ash_aed.models import AEDInstallationLocation
-from ash_aed.models import AEDInstallationLocationFactory
-from ash_aed.services import AEDInstallationLocationService
 
+from ash_aed.db import DB
+from ash_aed.models import (AEDInstallationLocation,
+                            AEDInstallationLocationFactory, CurrentLocation)
+from ash_aed.services import AEDInstallationLocationService
 
 test_data = [
     {

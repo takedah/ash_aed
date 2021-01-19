@@ -2,8 +2,8 @@ from ash_aed.db import DB
 from ash_aed.errors import DatabaseError, DataError
 from ash_aed.logs import AppLog
 from ash_aed.models import AEDInstallationLocationFactory
-from ash_aed.services import AEDInstallationLocationService
 from ash_aed.scraper import OpenData
+from ash_aed.services import AEDInstallationLocationService
 
 
 def import_opendata():

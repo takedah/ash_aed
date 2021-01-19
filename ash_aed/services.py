@@ -1,15 +1,12 @@
+from datetime import datetime, timedelta, timezone
+from decimal import ROUND_HALF_UP, Decimal
+
 from psycopg2.extras import DictCursor
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
-from decimal import Decimal
-from decimal import ROUND_HALF_UP
-from ash_aed.errors import DatabaseError
-from ash_aed.errors import DataError
+
+from ash_aed.errors import DatabaseError, DataError
 from ash_aed.logs import AppLog
-from ash_aed.models import AEDInstallationLocation
-from ash_aed.models import AEDInstallationLocationFactory
-from ash_aed.models import CurrentLocation
+from ash_aed.models import (AEDInstallationLocation,
+                            AEDInstallationLocationFactory, CurrentLocation)
 
 
 class AEDInstallationLocationService:
