@@ -65,14 +65,14 @@ class DB:
         """
         return self.__cursor.fetchone()
 
-    def commit(self) -> bool:
+    def commit(self) -> None:
         """PostgreSQLデータベースにクエリをコミット"""
         return self.__conn.commit()
 
-    def rollback(self) -> bool:
+    def rollback(self) -> None:
         """PostgreSQLデータベースのクエリをロールバック"""
         return self.__conn.rollback()
 
-    def close(self) -> bool:
+    def close(self) -> None:
         """PostgreSQLデータベースへの接続を閉じる"""
         return self.__conn.close()

@@ -25,21 +25,15 @@ class AEDInstallationLocationService:
         self.__table_name = "aed_installation_locations"
         self.__logger = AppLog()
 
-    def _execute(self, sql: str, parameters: tuple = None) -> bool:
+    def _execute(self, sql: str, parameters: tuple = None) -> None:
         """DBオブジェクトのexecuteメソッドのラッパー。
 
         Args:
             sql (str): SQL文
             parameters (tuple): SQLにプレースホルダを使用する場合の値を格納したリスト
 
-        Returns:
-            bool: 成功したら真を返す。
-
-        Raises:
-            DataError: SQL実行でエラーが生じた場合
-
         """
-        self.__db.execute(sql, parameters)
+        return self.__db.execute(sql, parameters)
 
     def _fetchall(self) -> list:
         """検索結果からAED設置場所データのリストを作成する。
@@ -64,7 +58,7 @@ class AEDInstallationLocationService:
         """
         return self.__db.fetchone()
 
-    def _info_log(self, message):
+    def _info_log(self, message) -> None:
         """AppLogオブジェクトのinfoメソッドのラッパー。
 
         Args:
@@ -72,7 +66,7 @@ class AEDInstallationLocationService:
         """
         return self.__logger.info(message)
 
-    def _error_log(self, message):
+    def _error_log(self, message) -> None:
         """AppLogオブジェクトのerrorメソッドのラッパー。
 
         Args:
@@ -81,21 +75,11 @@ class AEDInstallationLocationService:
         """
         return self.__logger.error(message)
 
-    def truncate(self) -> bool:
-        """AED設置場所テーブルのデータを全削除
-
-        Returns:
-            bool: データの登録が成功したら真を返す
-
-        """
+    def truncate(self) -> None:
+        """AED設置場所テーブルのデータを全削除"""
         state = "TRUNCATE TABLE " + self.__table_name + " RESTART IDENTITY;"
-        try:
-            self._execute(state)
-            self._info_log(self.__table_name + "テーブルを初期化しました。")
-            return True
-        except (DatabaseError, DataError) as e:
-            self._error_log(e.message)
-            return False
+        self._execute(state)
+        self._info_log(self.__table_name + "テーブルを初期化しました。")
 
     def create(self, aed_installation_location: AEDInstallationLocation) -> bool:
         """データベースへAED設置場所データを保存
@@ -301,11 +285,11 @@ class AEDInstallationLocationService:
             )
         return near_locations
 
-    def get_last_updated(self):
+    def get_last_updated(self) -> datetime:
         """テーブルの最終更新日を返す。
 
         Returns:
-            last_updated (:obj:`datetime.datetime'): テーブルのupdatedカラムで一番最新の
+            last_updated (:obj:`datetime'): テーブルのupdatedカラムで一番最新の
                 値を返す。
         """
         self.__db.execute("SELECT max(updated_at) FROM " + self.__table_name + ";")

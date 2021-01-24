@@ -133,6 +133,9 @@ class AEDInstallationLocationFactory(Factory):
         Args:
             row (dict): AED設置場所情報を表すディクショナリ
 
+        Returns:
+            obj (obj:`AEDInstallationLocation`): AED設置場所のデータオブジェクト
+
         """
         return AEDInstallationLocation(**row)
 

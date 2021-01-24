@@ -18,7 +18,7 @@ class AppLog:
         self.__logger = logger
         self.__logger.addHandler(console_handler)
 
-    def debug(self, message) -> bool:
+    def debug(self, message) -> None:
         """logging.debugのラッパー
 
         Args:
@@ -27,7 +27,7 @@ class AppLog:
         """
         return self.__logger.debug(message)
 
-    def info(self, message) -> bool:
+    def info(self, message) -> None:
         """logging.infoのラッパー
 
         Args:
@@ -36,7 +36,7 @@ class AppLog:
         """
         return self.__logger.info(message)
 
-    def warning(self, message) -> bool:
+    def warning(self, message) -> None:
         """logging.warningのラッパー
 
         Args:
@@ -45,7 +45,7 @@ class AppLog:
         """
         return self.__logger.warning(message)
 
-    def error(self, message) -> bool:
+    def error(self, message) -> None:
         """logging.errorのラッパー
 
         Args:
@@ -54,7 +54,7 @@ class AppLog:
         """
         return self.__logger.error(message)
 
-    def critical(self, message) -> bool:
+    def critical(self, message) -> None:
         """logging.criticalのラッパー
 
         Args:
