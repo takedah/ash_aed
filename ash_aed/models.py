@@ -63,21 +63,42 @@ class AEDInstallationLocation(Point):
 
     """
 
-    def __init__(self, **kwargs: dict):
+    def __init__(
+        self,
+        area: str,
+        location_id: int,
+        location_name: str,
+        postal_code: str,
+        address: str,
+        phone_number: str,
+        available_time: str,
+        installation_floor: str,
+        latitude: float,
+        longitude: float,
+    ):
         """
         Args:
-            **kwargs: AED設置場所の情報を格納したディクショナリ
+            area (str): AED設置場所がある地区
+            location_id (int): 連番
+            location_name (str): AED設置場所名
+            postal_code (str): AED設置場所の郵便番号
+            address (str): AED設置場所の住所
+            phone_number (str): AED設置場所の電話番号
+            available_time (str): AED設置場所の利用可能な時間
+            installation_floor (str): AEDが設置されているフロア
+            latitude (float): AED設置場所の緯度
+            longitude (float): AED設置場所の経度
 
         """
-        self.__area = str(kwargs["area"])
-        self.__location_id = int(kwargs["location_id"])
-        self.__location_name = str(kwargs["location_name"])
-        self.__postal_code = str(kwargs["postal_code"]).strip()
-        self.__address = str(kwargs["address"])
-        self.__phone_number = str(kwargs["phone_number"])
-        self.__available_time = str(kwargs["available_time"])
-        self.__installation_floor = str(kwargs["installation_floor"])
-        Point.__init__(self, float(kwargs["latitude"]), float(kwargs["longitude"]))
+        self.__area = str(area)
+        self.__location_id = int(location_id)
+        self.__location_name = str(location_name)
+        self.__postal_code = str(postal_code).strip()
+        self.__address = str(address)
+        self.__phone_number = str(phone_number)
+        self.__available_time = str(available_time)
+        self.__installation_floor = str(installation_floor)
+        Point.__init__(self, float(latitude), float(longitude))
 
     @property
     def area(self) -> str:
@@ -127,11 +148,11 @@ class AEDInstallationLocationFactory(Factory):
     def items(self) -> list:
         return self.__items
 
-    def _create_item(self, row: dict) -> AEDInstallationLocation:
+    def _create_item(self, **row) -> AEDInstallationLocation:
         """AED設置場所オブジェクトを作成する。
 
         Args:
-            row (dict): AED設置場所情報を表すディクショナリ
+            row (dict): AED設置場所データオブジェクトを作成するための引数
 
         Returns:
             obj (obj:`AEDInstallationLocation`): AED設置場所のデータオブジェクト
@@ -139,18 +160,14 @@ class AEDInstallationLocationFactory(Factory):
         """
         return AEDInstallationLocation(**row)
 
-    def _register_item(self, item: AEDInstallationLocation) -> bool:
+    def _register_item(self, item: AEDInstallationLocation) -> None:
         """AED設置場所オブジェクトをリストに追加。
 
         Args:
             item (:obj:`AEDInstallationLocation`): AED設置場所オブジェクト
 
-        Returns:
-            bool: 成功したら真を返す
-
         """
         self.__items.append(item)
-        return True
 
 
 class CurrentLocation(Point):

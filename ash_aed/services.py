@@ -3,10 +3,16 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from psycopg2.extras import DictCursor
 
+from typing import Optional
+
+from ash_aed.db import DB
 from ash_aed.errors import DatabaseError, DataError
 from ash_aed.logs import AppLog
-from ash_aed.models import (AEDInstallationLocation,
-                            AEDInstallationLocationFactory, CurrentLocation)
+from ash_aed.models import (
+    AEDInstallationLocation,
+    AEDInstallationLocationFactory,
+    CurrentLocation,
+)
 
 
 class AEDInstallationLocationService:
@@ -15,7 +21,7 @@ class AEDInstallationLocationService:
 
     """
 
-    def __init__(self, db):
+    def __init__(self, db: DB):
         """
         Args:
             db (obj:`DB`): psycopg2のメソッドをラップしたメソッドを持つオブジェクト
@@ -25,7 +31,7 @@ class AEDInstallationLocationService:
         self.__table_name = "aed_installation_locations"
         self.__logger = AppLog()
 
-    def _execute(self, sql: str, parameters: tuple = None) -> None:
+    def _execute(self, sql: str, parameters: tuple = None) -> bool:
         """DBオブジェクトのexecuteメソッドのラッパー。
 
         Args:
@@ -46,7 +52,7 @@ class AEDInstallationLocationService:
         results = self.__db.fetchall()
         factory = AEDInstallationLocationFactory()
         for row in results:
-            factory.create(row)
+            factory.create(**row)
         return factory.items
 
     def _fetchone(self) -> DictCursor:
@@ -131,7 +137,7 @@ class AEDInstallationLocationService:
             "DO UPDATE SET" + " " + upsert[1:]
         )
 
-        values = (
+        temp_values = [
             aed_installation_location.area,
             aed_installation_location.location_id,
             aed_installation_location.location_name,
@@ -143,9 +149,9 @@ class AEDInstallationLocationService:
             aed_installation_location.latitude,
             aed_installation_location.longitude,
             datetime.now(timezone(timedelta(hours=+9))),
-        )
+        ]
         # UPDATE句用に登録データ配列を重複させる
-        values += values
+        values = tuple(temp_values + temp_values)
 
         try:
             self._execute(state, values)
@@ -264,16 +270,16 @@ class AEDInstallationLocationService:
                 小数点第3位を切り上げ）を要素に持つ辞書のリスト
 
         """
-        near_locations = list()
+        locations = list()
         for location in self.get_all():
-            near_locations.append(
+            locations.append(
                 {
                     "order": None,
                     "location": location,
                     "distance": current_location.get_distance_to(location),
                 }
             )
-        near_locations = sorted(near_locations, key=lambda x: x["distance"])[:5]
+        near_locations = sorted(locations, key=lambda x: x["distance"])[:5]
         for i in range(len(near_locations)):
             # 現在地から近い順で連番を付与する。
             near_locations[i]["order"] = i + 1
@@ -285,7 +291,7 @@ class AEDInstallationLocationService:
             )
         return near_locations
 
-    def get_last_updated(self) -> datetime:
+    def get_last_updated(self) -> Optional[datetime]:
         """テーブルの最終更新日を返す。
 
         Returns:

@@ -1,9 +1,12 @@
 import unittest
 
 from ash_aed.errors import LocationError
-from ash_aed.models import (AEDInstallationLocation,
-                            AEDInstallationLocationFactory, CurrentLocation,
-                            Point)
+from ash_aed.models import (
+    AEDInstallationLocation,
+    AEDInstallationLocationFactory,
+    CurrentLocation,
+    Point,
+)
 
 test_data = {
     "area": "一条通〜十条通",
@@ -74,7 +77,7 @@ class TestAEDInstallationLocationFactory(unittest.TestCase):
     def test_create(self):
         factory = AEDInstallationLocationFactory()
         # AEDInstallationLocationクラスのオブジェクトが生成できるか確認する。
-        aed_installation_location = factory.create(test_data)
+        aed_installation_location = factory.create(**test_data)
         self.assertTrue(isinstance(aed_installation_location, AEDInstallationLocation))
         for obj in factory.items:
             self.assertTrue(isinstance(obj, AEDInstallationLocation))
@@ -83,7 +86,7 @@ class TestAEDInstallationLocationFactory(unittest.TestCase):
 class TestCurrentLocation(unittest.TestCase):
     def setUp(self):
         factory = AEDInstallationLocationFactory()
-        self.aed_installation_location = factory.create(test_data)
+        self.aed_installation_location = factory.create(**test_data)
         self.current_location = CurrentLocation(
             latitude=43.7703945, longitude=142.3631408
         )

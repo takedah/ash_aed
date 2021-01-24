@@ -12,7 +12,7 @@ def import_opendata():
     open_data = OpenData()
     factory = AEDInstallationLocationFactory()
     for row in open_data.lists:
-        factory.create(row)
+        factory.create(**row)
 
     db = DB()
     logger = AppLog()

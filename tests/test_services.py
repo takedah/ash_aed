@@ -1,8 +1,11 @@
 import unittest
 
 from ash_aed.db import DB
-from ash_aed.models import (AEDInstallationLocation,
-                            AEDInstallationLocationFactory, CurrentLocation)
+from ash_aed.models import (
+    AEDInstallationLocation,
+    AEDInstallationLocationFactory,
+    CurrentLocation,
+)
 from ash_aed.services import AEDInstallationLocationService
 
 test_data = [
@@ -86,7 +89,7 @@ class TestAEDInstallationLocationService(unittest.TestCase):
     def setUpClass(self):
         self.factory = AEDInstallationLocationFactory()
         for row in test_data:
-            self.factory.create(row)
+            self.factory.create(**row)
         self.db = DB()
         self.service = AEDInstallationLocationService(self.db)
         self.current_location = CurrentLocation(
