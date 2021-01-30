@@ -3,7 +3,7 @@ import os
 from flask import Flask, escape, g, render_template, request, url_for
 
 from ash_aed.db import DB
-from ash_aed.errors import LocationError
+from ash_aed.errors import LocationError, ServiceError
 from ash_aed.models import CurrentLocation
 from ash_aed.services import AEDInstallationLocationService
 
@@ -178,20 +178,47 @@ def area(area_name):
     )
 
 
-@app.route("/search_by_location_name")
-def search_by_location_name():
-    location_name = escape(request.args.get("location_name", None))
-    title = "名称に「" + location_name + "」を含むのAED設置場所の検索結果"
+@app.route("/find_by_location_name")
+def find_by_location_name():
+    location_name = escape(request.args.get("location_name", ""))
+    page = escape(request.args.get("page", 1))
+    try:
+        page = int(page)
+    except ValueError:
+        title = "検索条件に誤りがあります"
+        error_message = "ページ数指定が正しくありません。"
+        return render_template(
+            "error.html",
+            title=title,
+            area_names=get_area_names(),
+            error_message=error_message,
+        )
+
     service = AEDInstallationLocationService(get_db())
-    search_results = service.find_by_location_name(location_name)
-    results_number = len(search_results)
+    try:
+        search_results = service.find_by_location_name(location_name, page)
+    except ServiceError as e:
+        title = "検索条件に誤りがあります"
+        error_message = e.message
+        return render_template(
+            "error.html",
+            title=title,
+            area_names=get_area_names(),
+            error_message=error_message,
+        )
+
+    title = "名称に「" + location_name + "」を含むのAED設置場所の検索結果"
+    if 1 < page:
+        title += "（" + str(page) + "ページ）"
     return render_template(
-        "search_by_location_name.html",
+        "find_by_location_name.html",
         title=title,
         area_names=get_area_names(),
         location_name=location_name,
-        search_results=search_results,
-        results_number=results_number,
+        results_body=search_results["pagenated_results_body"],
+        results_number=search_results["all_results_number"],
+        page=page,
+        max_page=search_results["max_page"],
     )
 
 

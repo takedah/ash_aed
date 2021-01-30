@@ -178,15 +178,33 @@ class TestAEDInstallationLocationService(unittest.TestCase):
     def test_find_by_location_name(self):
         # 検索結果が10件以上ある場合、先頭10件が表示される
         results = self.service.find_by_location_name("旭川")
-        self.assertEqual(len(results), 10)
+        results_body = results["pagenated_results_body"]
+        results_number = results["all_results_number"]
+        max_page = results["max_page"]
+        self.assertEqual(len(results_body), 10)
+        self.assertEqual(results_number, 11)
+        self.assertEqual(max_page, 2)
+
         # 2ページ目は検索結果が11件目以降が表示される
         results = self.service.find_by_location_name(location_name="旭川", page=2)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].location_name, "旭川市障害者福祉センター「おぴった」")
+        results_body = results["pagenated_results_body"]
+        results_number = results["all_results_number"]
+        max_page = results["max_page"]
+        self.assertEqual(len(results_body), 1)
+        self.assertEqual(results_body[0].location_name, "旭川市障害者福祉センター「おぴった」")
+        self.assertEqual(results_number, 11)
+        self.assertEqual(max_page, 2)
+
         # 検索結果が10件未満の場合
         results = self.service.find_by_location_name("学校")
-        self.assertEqual(len(results), 2)
-        self.assertEqual(results[0].location_name, "旭川市立春光小学校")
+        results_body = results["pagenated_results_body"]
+        results_number = results["all_results_number"]
+        max_page = results["max_page"]
+        self.assertEqual(len(results_body), 2)
+        self.assertEqual(results_body[0].location_name, "旭川市立春光小学校")
+        self.assertEqual(results_number, 2)
+        self.assertEqual(max_page, 1)
+
         # 指定したページ数が上限を超えている場合
         with self.assertRaises(ServiceError):
             self.service.find_by_location_name(location_name="旭川", page=3)

@@ -4,7 +4,6 @@ from typing import Optional
 
 from psycopg2.extras import DictCursor
 
-from ash_aed.config import Config
 from ash_aed.db import DB
 from ash_aed.errors import DatabaseError, DataError, ServiceError
 from ash_aed.logs import AppLog
@@ -29,7 +28,6 @@ class AEDInstallationLocationService:
         """
         self.__db = db
         self.__table_name = "aed_installation_locations"
-        self.__max_view_results_number = Config.MAX_VIEW_RESULTS_NUMBER
         self.__logger = AppLog()
 
     def _execute(self, sql: str, parameters: tuple = None) -> bool:
@@ -90,33 +88,6 @@ class AEDInstallationLocationService:
 
         """
         return self.__logger.error(message)
-
-    def _get_skip_record_number(self, results_number: int, page: int) -> int:
-        """
-        検索結果の件数が設定した1ページ当たりの上限表示件数を超えた場合、
-        ページを分割するためクエリ結果からスキップするレコード数を返す。
-
-        Args:
-            results_number (int): 検索結果のレコード件数
-            page (int): ページ番号
-
-        Returns:
-            skip_record_number (int): 指定したページ番号の場合にスキップするレコード数
-
-        """
-        max_view_results_number = self.__max_view_results_number
-        if divmod(results_number, max_view_results_number)[1] == 0:
-            max_page = divmod(results_number, max_view_results_number)[0]
-        else:
-            max_page = divmod(results_number, max_view_results_number)[0] + 1
-        try:
-            page = int(page)
-            if max_page < page:
-                raise ServiceError("指定したページ数が上限を超えています。")
-            else:
-                return (page - 1) * max_view_results_number
-        except (TypeError, ValueError):
-            raise ServiceError("検索結果のページ指定に誤りがあります。")
 
     def truncate(self) -> None:
         """AED設置場所テーブルのデータを全削除"""
@@ -235,21 +206,20 @@ class AEDInstallationLocationService:
         self._execute(state, (str(location_id),))
         return self._get_objects()
 
-    def find_by_location_name(self, location_name, page: int = 1) -> list:
+    def find_by_location_name(self, location_name, page: int = 1) -> dict:
         """
         指定したAED設置場所名を含むAED設置場所を検索する。
 
         Args:
             location_name (int): AED設置場所名（キーワード）
+            page (int): 検索結果のページ数
 
         Returns
-            aed_installation_location (list of obj:`AEDInstallationLocation`):
-                AED設置場所データ
+            results (dict): 検索結果の総件数と検索条件に合致するAED設置場所データ
+                オブジェクトのリスト、ページ分割した際の最大ページ数を要素に持つ辞書
 
         """
         location_name = "%" + location_name + "%"
-
-        # 先に指定したページ数で表示する検索結果の範囲を設定する。
         count_state = (
             "SELECT count(location_name) FROM "
             + self.__table_name
@@ -258,8 +228,28 @@ class AEDInstallationLocationService:
         self._execute(count_state, (location_name,))
         row = self._fetchone()
         results_number = row["count"]
-        skip_record_number = self._get_skip_record_number(results_number, page)
-        pagenation_option = " LIMIT " + str(self.__max_view_results_number)
+
+        # 検索結果の最大ページ数を取得。
+        max_view_results_number = 10
+        if results_number < max_view_results_number:
+            max_page = 1
+        else:
+            if divmod(results_number, max_view_results_number)[1] == 0:
+                max_page = divmod(results_number, max_view_results_number)[0]
+            else:
+                max_page = divmod(results_number, max_view_results_number)[0] + 1
+
+        # 指定されたページ数の検索結果を表示するためにスキップするレコード数を取得。
+        try:
+            page = int(page)
+            if max_page < page:
+                raise ServiceError("指定したページ数が上限を超えています。")
+            else:
+                skip_record_number = (page - 1) * max_view_results_number
+        except (TypeError, ValueError):
+            raise ServiceError("検索結果のページ指定に誤りがあります。")
+
+        pagenation_option = " LIMIT " + str(max_view_results_number)
         if 1 < page:
             pagenation_option += " OFFSET " + str(skip_record_number)
         pagenation_option += ";"
@@ -272,7 +262,11 @@ class AEDInstallationLocationService:
             + " WHERE location_name LIKE %s ORDER BY location_id"
         )
         self._execute(select_state + pagenation_option, (location_name,))
-        return self._get_objects()
+        return {
+            "all_results_number": results_number,
+            "max_page": max_page,
+            "pagenated_results_body": self._get_objects(),
+        }
 
     def get_area_names(self) -> list:
         """
