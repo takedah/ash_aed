@@ -1,6 +1,7 @@
 import unittest
 
 from ash_aed.db import DB
+from ash_aed.errors import ServiceError
 from ash_aed.models import (
     AEDInstallationLocation,
     AEDInstallationLocationFactory,
@@ -48,7 +49,7 @@ test_data = [
     {
         "area": "末広",
         "location_id": 187,
-        "location_name": "春光小学校",
+        "location_name": "旭川市立春光小学校",
         "postal_code": "071-8131",
         "address": "北海道旭川市末広1条1丁目",
         "phone_number": "0166-51-5288",
@@ -60,7 +61,7 @@ test_data = [
     {
         "area": "末広",
         "location_id": 195,
-        "location_name": "六合中学校",
+        "location_name": "旭川市立六合中学校",
         "postal_code": "071-8133",
         "address": "北海道旭川市末広3条2丁目",
         "phone_number": "0166-51-5388",
@@ -72,7 +73,7 @@ test_data = [
     {
         "area": "花咲",
         "location_id": 357,
-        "location_name": "花咲スポーツ公園　球技場",
+        "location_name": "旭川市花咲スポーツ公園　球技場",
         "postal_code": "070-0901",
         "address": "北海道旭川市花咲町3丁目",
         "phone_number": "0166-51-5288",
@@ -80,6 +81,66 @@ test_data = [
         "installation_floor": "1階事務室内",
         "latitude": 43.78868943,
         "longitude": 142.3701686,
+    },
+    {
+        "area": "宮前",
+        "location_id": 447,
+        "location_name": "旭川地方法務局",
+        "postal_code": "",
+        "address": "旭川市宮前1条3丁目3番15号",
+        "phone_number": "",
+        "available_time": "",
+        "installation_floor": "",
+        "latitude": 43.75798757,
+        "longitude": 142.3723008,
+    },
+    {
+        "area": "宮前",
+        "location_id": 448,
+        "location_name": "旭川中税務署(旭川合同庁舎)",
+        "postal_code": "",
+        "address": "旭川市宮前1条3丁目3番15号 旭川合同庁舎",
+        "phone_number": "",
+        "available_time": "",
+        "installation_floor": "",
+        "latitude": 43.7577086,
+        "longitude": 142.3730304,
+    },
+    {
+        "area": "宮前",
+        "location_id": 449,
+        "location_name": "旭川市民活動交流センター　CoCoDe",
+        "postal_code": "",
+        "address": "旭川市宮前1条3丁目3番30号",
+        "phone_number": "",
+        "available_time": "",
+        "installation_floor": "",
+        "latitude": 43.7566658,
+        "longitude": 142.3717082,
+    },
+    {
+        "area": "宮前",
+        "location_id": 450,
+        "location_name": "旭川市科学館　サイパル",
+        "postal_code": "",
+        "address": "旭川市宮前1条3丁目3番32号",
+        "phone_number": "",
+        "available_time": "",
+        "installation_floor": "",
+        "latitude": 43.7563103,
+        "longitude": 142.3705926,
+    },
+    {
+        "area": "宮前",
+        "location_id": 451,
+        "location_name": "旭川市障害者福祉センター「おぴった」",
+        "postal_code": "",
+        "address": "旭川市宮前1条3丁目3番7号",
+        "phone_number": "",
+        "available_time": "",
+        "installation_floor": "",
+        "latitude": 43.7583754,
+        "longitude": 142.370498,
     },
 ]
 
@@ -115,11 +176,23 @@ class TestAEDInstallationLocationService(unittest.TestCase):
         self.assertEqual(location[0].location_name, "フィール旭川")
 
     def test_find_by_location_name(self):
-        results = self.service.find_by_location_name("花咲")
-        self.assertEqual(results[0].location_name, "花咲スポーツ公園　球技場")
+        # 検索結果が10件以上ある場合、先頭10件が表示される
+        results = self.service.find_by_location_name("旭川")
+        self.assertEqual(len(results), 10)
+        # 2ページ目は検索結果が11件目以降が表示される
+        results = self.service.find_by_location_name(location_name="旭川", page=2)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].location_name, "旭川市障害者福祉センター「おぴった」")
+        # 検索結果が10件未満の場合
+        results = self.service.find_by_location_name("学校")
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0].location_name, "旭川市立春光小学校")
+        # 指定したページ数が上限を超えている場合
+        with self.assertRaises(ServiceError):
+            self.service.find_by_location_name(location_name="旭川", page=3)
 
     def test_get_area_names(self):
-        expect = ["一条通〜十条通", "花咲", "末広"]
+        expect = ["一条通〜十条通", "花咲", "宮前", "末広"]
         self.assertEqual(self.service.get_area_names(), expect)
 
     def test_find_by_area_name(self):
@@ -138,8 +211,8 @@ class TestAEDInstallationLocationService(unittest.TestCase):
         self.assertEqual(near_locations[1]["distance"], 0.71)
         # 五番目に近い避難場所
         self.assertEqual(near_locations[-1]["order"], 5)
-        self.assertEqual(near_locations[-1]["location"].location_name, "春光小学校")
-        self.assertEqual(near_locations[-1]["distance"], 3.79)
+        self.assertEqual(near_locations[-1]["location"].location_name, "旭川地方法務局")
+        self.assertEqual(near_locations[-1]["distance"], 1.54)
 
 
 if __name__ == "__main__":

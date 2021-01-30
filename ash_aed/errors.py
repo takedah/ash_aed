@@ -60,3 +60,15 @@ class ScrapeError(Error):
 
     def __init__(self, message):
         Error.__init__(self, message)
+
+
+class ServiceError(Error):
+    """サービスに関するエラー
+
+    Attributes:
+        message (str): エラーメッセージ
+
+    """
+
+    def __init__(self, message):
+        Error.__init__(self, message)

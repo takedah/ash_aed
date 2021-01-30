@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Optional
 
 from psycopg2.extras import DictCursor
 
-from typing import Optional
-
+from ash_aed.config import Config
 from ash_aed.db import DB
-from ash_aed.errors import DatabaseError, DataError
+from ash_aed.errors import DatabaseError, DataError, ServiceError
 from ash_aed.logs import AppLog
 from ash_aed.models import (
     AEDInstallationLocation,
@@ -29,6 +29,7 @@ class AEDInstallationLocationService:
         """
         self.__db = db
         self.__table_name = "aed_installation_locations"
+        self.__max_view_results_number = Config.MAX_VIEW_RESULTS_NUMBER
         self.__logger = AppLog()
 
     def _execute(self, sql: str, parameters: tuple = None) -> bool:
@@ -42,18 +43,13 @@ class AEDInstallationLocationService:
         return self.__db.execute(sql, parameters)
 
     def _fetchall(self) -> list:
-        """検索結果からAED設置場所データのリストを作成する。
+        """DBオブジェクトのfetchallメソッドのラッパー。
 
         Returns:
-            locations (list of obj:`AEDInstallationLocation`): 検索結果のAED設置場所
-                オブジェクトのリスト
+            results (list of :obj:`psycopg2.extras.DictCursor`): 検索結果のリスト
 
         """
-        results = self.__db.fetchall()
-        factory = AEDInstallationLocationFactory()
-        for row in results:
-            factory.create(**row)
-        return factory.items
+        return self.__db.fetchall()
 
     def _fetchone(self) -> DictCursor:
         """DBオブジェクトのfetchoneメソッドのラッパー。
@@ -63,6 +59,20 @@ class AEDInstallationLocationService:
 
         """
         return self.__db.fetchone()
+
+    def _get_objects(self) -> list:
+        """検索結果からAED設置場所データのリストを作成する。
+
+        Returns:
+            locations (list of obj:`AEDInstallationLocation`): 検索結果のAED設置場所
+                オブジェクトのリスト
+
+        """
+        results = self._fetchall()
+        factory = AEDInstallationLocationFactory()
+        for row in results:
+            factory.create(**row)
+        return factory.items
 
     def _info_log(self, message) -> None:
         """AppLogオブジェクトのinfoメソッドのラッパー。
@@ -80,6 +90,33 @@ class AEDInstallationLocationService:
 
         """
         return self.__logger.error(message)
+
+    def _get_skip_record_number(self, results_number: int, page: int) -> int:
+        """
+        検索結果の件数が設定した1ページ当たりの上限表示件数を超えた場合、
+        ページを分割するためクエリ結果からスキップするレコード数を返す。
+
+        Args:
+            results_number (int): 検索結果のレコード件数
+            page (int): ページ番号
+
+        Returns:
+            skip_record_number (int): 指定したページ番号の場合にスキップするレコード数
+
+        """
+        max_view_results_number = self.__max_view_results_number
+        if divmod(results_number, max_view_results_number)[1] == 0:
+            max_page = divmod(results_number, max_view_results_number)[0]
+        else:
+            max_page = divmod(results_number, max_view_results_number)[0] + 1
+        try:
+            page = int(page)
+            if max_page < page:
+                raise ServiceError("指定したページ数が上限を超えています。")
+            else:
+                return (page - 1) * max_view_results_number
+        except (TypeError, ValueError):
+            raise ServiceError("検索結果のページ指定に誤りがあります。")
 
     def truncate(self) -> None:
         """AED設置場所テーブルのデータを全削除"""
@@ -175,7 +212,7 @@ class AEDInstallationLocationService:
             + " ORDER BY location_id;"
         )
         self._execute(state)
-        return self._fetchall()
+        return self._get_objects()
 
     def find_by_location_id(self, location_id) -> list:
         """
@@ -196,9 +233,9 @@ class AEDInstallationLocationService:
             + " WHERE location_id=%s;"
         )
         self._execute(state, (str(location_id),))
-        return self._fetchall()
+        return self._get_objects()
 
-    def find_by_location_name(self, location_name) -> list:
+    def find_by_location_name(self, location_name, page: int = 1) -> list:
         """
         指定したAED設置場所名を含むAED設置場所を検索する。
 
@@ -211,14 +248,31 @@ class AEDInstallationLocationService:
 
         """
         location_name = "%" + location_name + "%"
-        state = (
-            "SELECT area,location_id,location_name,postal_code,address,phone_number,"
-            + "available_time,installation_floor,latitude,longitude FROM "
+
+        # 先に指定したページ数で表示する検索結果の範囲を設定する。
+        count_state = (
+            "SELECT count(location_name) FROM "
             + self.__table_name
             + " WHERE location_name LIKE %s;"
         )
-        self._execute(state, (location_name,))
-        return self._fetchall()
+        self._execute(count_state, (location_name,))
+        row = self._fetchone()
+        results_number = row["count"]
+        skip_record_number = self._get_skip_record_number(results_number, page)
+        pagenation_option = " LIMIT " + str(self.__max_view_results_number)
+        if 1 < page:
+            pagenation_option += " OFFSET " + str(skip_record_number)
+        pagenation_option += ";"
+
+        # 指定した範囲で検索クエリを実施。
+        select_state = (
+            "SELECT area,location_id,location_name,postal_code,address,phone_number,"
+            + "available_time,installation_floor,latitude,longitude FROM "
+            + self.__table_name
+            + " WHERE location_name LIKE %s ORDER BY location_id"
+        )
+        self._execute(select_state + pagenation_option, (location_name,))
+        return self._get_objects()
 
     def get_area_names(self) -> list:
         """
@@ -231,7 +285,7 @@ class AEDInstallationLocationService:
         state = "SELECT DISTINCT ON (area) area FROM " + self.__table_name + ";"
         area_names = list()
         self._execute(state)
-        for row in self.__db.fetchall():
+        for row in self._fetchall():
             area_names.append(row["area"])
         return area_names
 
@@ -254,7 +308,7 @@ class AEDInstallationLocationService:
             + " WHERE area=%s ORDER BY location_id;"
         )
         self._execute(state, (area_name,))
-        return self._fetchall()
+        return self._get_objects()
 
     def get_near_locations(self, current_location: CurrentLocation) -> list:
         """
