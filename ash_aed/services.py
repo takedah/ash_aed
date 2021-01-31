@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Optional
 
+import psycopg2
 from psycopg2.extras import DictCursor
 
 from ash_aed.db import DB
@@ -23,40 +24,53 @@ class AEDInstallationLocationService:
     def __init__(self, db: DB):
         """
         Args:
-            db (obj:`DB`): psycopg2のメソッドをラップしたメソッドを持つオブジェクト
+            db (obj:`DB`): psycopg2.extrasのDictCursorオブジェクトを返すメソッドを
+                ラップしたメソッドを持つオブジェクト
 
         """
-        self.__db = db
+        self.__cursor = db.cursor()
         self.__table_name = "aed_installation_locations"
         self.__logger = AppLog()
 
     def _execute(self, sql: str, parameters: tuple = None) -> bool:
-        """DBオブジェクトのexecuteメソッドのラッパー。
+        """DictCursorオブジェクトのexecuteメソッドのラッパー。
 
         Args:
             sql (str): SQL文
             parameters (tuple): SQLにプレースホルダを使用する場合の値を格納したリスト
 
         """
-        return self.__db.execute(sql, parameters)
+        try:
+            if parameters:
+                self.__cursor.execute(sql, parameters)
+            else:
+                self.__cursor.execute(sql)
+            return True
+        except (
+            psycopg2.DataError,
+            psycopg2.IntegrityError,
+            psycopg2.InternalError,
+        ) as e:
+            raise DataError(e.args[0])
+        return self.__cursor.execute(sql, parameters)
 
     def _fetchall(self) -> list:
-        """DBオブジェクトのfetchallメソッドのラッパー。
+        """DictCursorオブジェクトのfetchallメソッドのラッパー。
 
         Returns:
-            results (list of :obj:`psycopg2.extras.DictCursor`): 検索結果のリスト
+            results (list of :obj:`DictCursor`): 検索結果のリスト
 
         """
-        return self.__db.fetchall()
+        return self.__cursor.fetchall()
 
     def _fetchone(self) -> DictCursor:
-        """DBオブジェクトのfetchoneメソッドのラッパー。
+        """DictCursorオブジェクトのfetchoneメソッドのラッパー。
 
         Returns:
-            results (:obj:`psycopg2.extras.DictCursor`): 検索結果
+            results (:obj:`DictCursor`): 検索結果
 
         """
-        return self.__db.fetchone()
+        return self.__cursor.fetchone()
 
     def _get_objects(self) -> list:
         """検索結果からAED設置場所データのリストを作成する。
@@ -346,7 +360,7 @@ class AEDInstallationLocationService:
             last_updated (:obj:`datetime'): テーブルのupdatedカラムで一番最新の
                 値を返す。
         """
-        self.__db.execute("SELECT max(updated_at) FROM " + self.__table_name + ";")
+        self._execute("SELECT max(updated_at) FROM " + self.__table_name + ";")
         row = self._fetchone()
         if row["max"] is None:
             return None
