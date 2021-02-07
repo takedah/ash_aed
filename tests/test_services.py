@@ -5,7 +5,7 @@ from ash_aed.errors import ServiceError
 from ash_aed.models import (
     AEDInstallationLocation,
     AEDInstallationLocationFactory,
-    CurrentLocation,
+    CurrentLocation
 )
 from ash_aed.services import AEDInstallationLocationService
 

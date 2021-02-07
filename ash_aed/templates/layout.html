@@ -8,13 +8,17 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="">
         <!-- Make sure you put this AFTER Leaflet's CSS -->
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+        <script src="https://kit.fontawesome.com/af6896cda7.js" crossorigin="anonymous"></script>
         <title>{{ title }} - 旭川市AED設置場所検索</title>
     </head>
     <body>
         <header>
             <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
                 <div class="navbar-nav">
-                    <a class="navbar-brand text-white-50" href="/" title="トップページへ戻る">旭川市AED設置場所検索</a>
+                    <a class="navbar-brand text-white-50" href="/" title="トップページへ戻る">
+                        <i class="fas fa-heartbeat"></i>
+                        旭川市AED設置場所検索
+                    </a>
                 </div>
                 <div class="navbar-nav ml-1">
                     <div class="dropdown show">
@@ -28,14 +32,19 @@
                 </div>
             </nav>
         </header>
-        <main>
+        <main class="mb-5">
             {% block content %}
             <!-- contents -->
             {% endblock %}
         </main>
         <footer class="footer mt-auto">
             <div class="container">
-                <p>この<a href="/" title="トップページへ戻る">旭川市AED設置場所検索</a>は以下の著作物を改変して利用しています。[AED設置事業所一覧]、旭川市、<a href="http://creativecommons.org/licenses/by/2.1/jp/" title="CC BY 2.1 JP">クリエイティブ・コモンズ・ライセンス 表示 2.1</a></p>
+                <section>
+                    <p class="text-center"><a href="/" title="旭川市AED設置場所検索">トップページへ戻る</a>
+                </section>
+                <section>
+                    <p>この<a href="/" title="トップページへ戻る">旭川市AED設置場所検索</a>は以下の著作物を改変して利用しています。[AED設置事業所一覧]、旭川市、<a href="http://creativecommons.org/licenses/by/2.1/jp/" title="CC BY 2.1 JP">クリエイティブ・コモンズ・ライセンス 表示 2.1</a></p>
+                </section>
             </div>
         </footer>
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

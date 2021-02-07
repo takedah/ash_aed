@@ -20,7 +20,7 @@ function getLocation() {
         if (message == "") {
             gpsServiceStatus.className = "none";
         } else {
-            gpsServiceStatus.className = "alert alert-warning";
+            gpsServiceStatus.className = "alert alert-danger";
         }
         gpsServiceStatus.innerHTML = message;
     };

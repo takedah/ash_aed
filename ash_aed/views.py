@@ -14,11 +14,13 @@ app = Flask(__name__)
 def add_security_headers(response):
     response.headers.add(
         "Content-Security-Policy",
-        "default-src 'self'; \
-                    style-src 'self' stackpath.bootstrapcdn.com unpkg.com; \
+        "default-src 'self'; style-src 'self' 'unsafe-inline' \
+                    stackpath.bootstrapcdn.com unpkg.com kit.fontawesome.com; \
                     script-src 'self' code.jquery.com cdnjs.cloudflare.com \
-                    stackpath.bootstrapcdn.com unpkg.com; \
-                    img-src 'self' *.tile.openstreetmap.org unpkg.com data:;",
+                    stackpath.bootstrapcdn.com unpkg.com kit.fontawesome.com; \
+                    img-src 'self' *.tile.openstreetmap.org unpkg.com data:; \
+                    connect-src ka-f.fontawesome.com; \
+                    font-src ka-f.fontawesome.com;",
     )
     response.headers.add("X-Content-Type-Options", "nosniff")
     response.headers.add("X-Frame-Options", "DENY")

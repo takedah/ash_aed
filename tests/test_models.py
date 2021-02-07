@@ -5,7 +5,7 @@ from ash_aed.models import (
     AEDInstallationLocation,
     AEDInstallationLocationFactory,
     CurrentLocation,
-    Point,
+    Point
 )
 
 test_data = {

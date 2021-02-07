@@ -11,7 +11,7 @@ from ash_aed.logs import AppLog
 from ash_aed.models import (
     AEDInstallationLocation,
     AEDInstallationLocationFactory,
-    CurrentLocation,
+    CurrentLocation
 )
 
 
@@ -52,7 +52,6 @@ class AEDInstallationLocationService:
             psycopg2.InternalError,
         ) as e:
             raise DataError(e.args[0])
-        return self.__cursor.execute(sql, parameters)
 
     def _fetchall(self) -> list:
         """DictCursorオブジェクトのfetchallメソッドのラッパー。
